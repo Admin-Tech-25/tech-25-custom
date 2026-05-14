@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading App...</title>
+    <style>
+        body { background: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; color: #64748b; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <script>
+        // 1. Identify the Gym from Subdomain
+        const hostname = window.location.hostname;
+        let gymId = hostname.includes('.') ? hostname.split('.')[0] : 'default';
+        if (gymId === 'www' || gymId === 'localhost') gymId = 'default';
+
+        // 2. Load the specific gym's configuration
+        const configScript = document.createElement('script');
+        configScript.src = `/gyms/${gymId}/config.js`;
+        
+        configScript.onload = () => {
+            // 3. Determine which app this gym uses (defaults to 75custom)
+            const appToLoad = window.GYM_CONFIG?.activeApp || '75custom';
+            // 4. Route to the app, passing the gym ID so the app knows who to load
+            window.location.replace(`/apps/${appToLoad}/index.html?gym=${gymId}`);
+        };
+
+        configScript.onerror = () => {
+            // Fallback if gym doesn't exist
+            console.warn(`Config for ${gymId} missing. Falling back to default.`);
+            window.location.replace(`/apps/75custom/index.html?gym=default`);
+        };
+
+        document.head.appendChild(configScript);
+    </script>
+</body>
+</html>
